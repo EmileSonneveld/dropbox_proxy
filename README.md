@@ -9,6 +9,7 @@ Not tested on 2GB+ files.
 
 Tested on PHP Version 5.6.40
 
+Pentested by[`@samvdkris`](https://github.com/samvdkris)
 
 If you spot bugs, please let me know here: contact@emilesonneveld.be
 
