@@ -178,6 +178,17 @@ function mime_content_type_custom($filename) {
         'swf' => 'application/x-shockwave-flash',
         'flv' => 'video/x-flv',
 
+        // TODO: Implement video streaming.
+        // Right now it is better to just download the video as a file
+        //'flv' => 'video/x-flv',
+        //'mp4' => 'video/mp4',
+        //'m3u8' => 'application/x-mpegURL',
+        //'ts' => 'video/MP2T',
+        //'3gp' => 'video/3gpp',
+        //'mov' => 'video/quicktime',
+        //'avi' => 'video/x-msvideo',
+        //'wmv' => 'video/x-ms-wmv',
+        
         // images
         'png' => 'image/png',
         'jpe' => 'image/jpeg',

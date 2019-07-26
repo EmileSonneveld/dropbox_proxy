@@ -1,7 +1,14 @@
 # dropbox_proxy
 Make files accessible from the internet. Making relative paths in HTML files work too. Just like the 'Public' folder used to work.
 
-Code is commented with instructions.
+Place this folder on a Apache/PHP server and fill in the gaps in the code. Then your server should be proxying the files from your dropbox using the dropbox API.
+
+No caching is implemented.
+
+Not tested on 2GB+ files.
+
+Tested on PHP Version 5.6.40
+
 
 If you spot bugs, please let me know here: contact@emilesonneveld.be
 
