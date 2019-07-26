@@ -1,0 +1,15 @@
+RewriteEngine On
+Options +FollowSymLinks
+#When combining rewrites at root level, add the following line to the .htacces in the root:
+# RewriteCond %{REQUEST_URI} !dropbox_proxy
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1
+
+php_value upload_max_filesize 1224M
+php_value post_max_size 1224M
+
+# TODO: Make sure that settings.php doesn't get accidentally hosted when PHP is disabler,
+# or when hosting with a different kind of webserver
+
+# NOTE: It is probably safer to host this on a subdomain
