@@ -57,12 +57,12 @@ function endsWith($haystack, $needle)
 }
 
 
-function filelist_dropbox_to_emile_format($dropboxJson)
+function filelistDropboxToEmileFormat($dropboxJson)
 {
     $dropbox = json_decode($dropboxJson);
     $emile = array();
     //return json_encode($dropbox->entries);
-    foreach ($dropbox->entries as $key => $value) {
+    foreach ($dropbox->entries as $value) {
         $obj = array();
         $obj["name"] = $value->name;
         array_push($emile, $obj);
@@ -127,9 +127,9 @@ if (curl_error($ch)) {
 }
 curl_close($ch);
 
-function mime_content_type_custom($filename)
+function mimeContentTypeCustom($filename)
 {
-    $mime_types = array(
+    $mimeTypes = array(
         'sublime' => 'application/xml',
         'srt' => 'text/plain',
         'htaccess' => 'text/plain',
@@ -237,8 +237,8 @@ function mime_content_type_custom($filename)
 
     $exp = explode('.', $filename);
     $ext = strtolower(array_pop($exp));
-    if (array_key_exists($ext, $mime_types)) {
-        return $mime_types[$ext];
+    if (array_key_exists($ext, $mimeTypes)) {
+        return $mimeTypes[$ext];
     } elseif (function_exists('finfo_open') && file_exists($filename)) {
         $finfo = finfo_open(FILEINFO_MIME);
         $mimetype = finfo_file($finfo, $filename);
@@ -250,7 +250,7 @@ function mime_content_type_custom($filename)
 }
 
 if (endsWith($path, "/")) {
-    $output = filelist_dropbox_to_emile_format($output);
+    $output = filelistDropboxToEmileFormat($output);
     header('Content-Type: application/json');
 } elseif ($_SERVER['REQUEST_METHOD'] == "POST") {
     $output = "This PHP-proxy thinks the file has been written.";
@@ -263,7 +263,8 @@ if (endsWith($path, "/")) {
         $encoded = htmlentities($encoded);
         $encoded = preg_replace('"\b(https?://\S+)"', '<a href="$1">$1</a>', $encoded);
         // Using <pre> for keeping newlines causes wrapping to be massed up.
-        $encoded = preg_replace("\"\n\"", '<br/>', $encoded);
+        $encoded = str_replace("\n", "<br/>\n", $encoded);
+        $encoded = str_replace("  ", " &nbsp", $encoded); // Otherwise spaces get compacted
         $output = "<!DOCTYPE html>
         <html>
         <head>
@@ -274,7 +275,7 @@ if (endsWith($path, "/")) {
         </body>
         </html>";
     } else {
-        header('Content-Type: '.mime_content_type_custom($path));
+        header('Content-Type: '.mimeContentTypeCustom($path));
     }
 }
 echo $output;
