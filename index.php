@@ -1,44 +1,47 @@
 <?php
 
 // Put $debug on false as soon as you are set up! Otherwise hackers can gain information trough debug messages.
-$debug = true; 
-if($debug){
+$debug = true;
+if ($debug) {
     error_reporting(-1);
     ini_set('display_errors', 'On');
 }
 
 // Important to give not much info in the error messages.
-function DieNoAcces($reason)
+function dieNoAcces($reason)
 {
     global $debug;
     header('HTTP/1.0 401 Unauthorized');
-    if($debug)
+    if ($debug) {
         die("No access. ".$reason); //Only give reason while debugging.
-    else
+    } else {
         die("No access.");
+    }
 }
 
 // Example url: http://my-cool-website.be/dropbox_proxy/Public/vub_notes.txt
 $path = false;
-if (isset($_SERVER['ORIG_PATH_INFO']))
+if (isset($_SERVER['ORIG_PATH_INFO'])) {
     $path = $_SERVER['ORIG_PATH_INFO'];
-if (isset($_SERVER['PATH_INFO']))
+}
+if (isset($_SERVER['PATH_INFO'])) {
     $path = $_SERVER['PATH_INFO'];
-if ($path == false){
+}
+if ($path == false) {
     //$path = "/";
-    DieNoAcces("No path");
+    dieNoAcces("No path");
 }
 
 //$path = substr($path, 1);
-if ((strpos($path, '..') !== false) 
+if ((strpos($path, '..') !== false)
     || (strpos($path, '"') !== false)
     || (strpos($path, '\'') !== false)
     || (strpos($path, '*') !== false)
 ) {
-    DieNoAcces("Ignore shady paths");
+    dieNoAcces("Ignore shady paths");
 }
 if (strlen($path) == 0 || $path[0] !== "/") {
-    DieNoAcces("Ignore shady paths");
+    dieNoAcces("Ignore shady paths");
 }
 
 require_once("settings.php");
@@ -75,57 +78,57 @@ $headers = [
 
 // No need to json_encode() here?
 $ch = null;
-if(endsWith($path, "/"))
-{
+if (endsWith($path, "/")) {
     // List folder content
     $ch = curl_init("https://api.dropboxapi.com/2/files/list_folder");
     curl_setopt($ch, CURLOPT_POSTFIELDS, "{\"path\": \"/".$path."\",\"recursive\": false,\"include_media_info\": false,\"include_deleted\": false,\"include_has_explicit_shared_members\": false,\"include_mounted_folders\": true}");
     array_push($headers, 'Content-Type: application/json');
-}
-else if($_SERVER['REQUEST_METHOD'] == "POST")
-{
+} elseif ($_SERVER['REQUEST_METHOD'] == "POST") {
     $ch = curl_init("https://content.dropboxapi.com/2/files/upload");
     array_push($headers, 'Dropbox-API-Arg: {"path": "'.$path.'", "mode":"overwrite"}');
     //die("Temporary block!");
     // Seems impossible to get custom headers in PHP7 or so
-    //$reqHeaders = getallheaders(); // alias: getallheaders 
+    //$reqHeaders = getallheaders(); // alias: getallheaders
     //$file_content = urldecode($reqHeaders["file_content"]); // Name 'file_content' choosen by convention
     $file_content = file_get_contents('php://input');
     curl_setopt($ch, CURLOPT_POSTFIELDS, $file_content);
     array_push($headers, 'Content-Type: application/octet-stream');
-}
-else
-{
+} else {
     $ch = curl_init("https://content.dropboxapi.com/2/files/download");
     array_push($headers, 'Dropbox-API-Arg: {"path": "'.$path.'"}');
     array_push($headers, 'Content-Type: text/plain');
 }
 
 //curl_setopt($ch, CURLINFO_HEADER_OUT, true);
-//curl_setopt($ch, CURLOPT_POST, 1); When commenting this out, it will add "Content-Length:-1" when requesting from tools.jnm.be and this crashes dropbox.
+
+// When commenting the following out, it will add "Content-Length:-1" when
+// requesting from tools.jnm.be and this crashes dropbox:
+//curl_setopt($ch, CURLOPT_POST, 1);
+
 curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_FAILONERROR, true); // Required for HTTP error codes to be reported via our call to curl_error($ch)
+
+// Required for HTTP error codes to be reported via our call to curl_error($ch):
+curl_setopt($ch, CURLOPT_FAILONERROR, true);
 
 
 // Avoid "SSL certificate problem: unable to get local issuer certificate" on localhost
-if($debug)
-{
+if ($debug) {
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_setopt($ch, CURLOPT_VERBOSE, 1); 
+    curl_setopt($ch, CURLOPT_VERBOSE, 1);
 }
 
 
 $output = curl_exec($ch);
 if (curl_error($ch)) {
-	//echo curl_getinfo($ch, CURLINFO_HEADER_OUT);
-    DieNoAcces("Curl error: ".curl_error($ch));
+    //echo curl_getinfo($ch, CURLINFO_HEADER_OUT);
+    dieNoAcces("Curl error: ".curl_error($ch));
 }
 curl_close($ch);
 
-function mime_content_type_custom($filename) {
-
+function mime_content_type_custom($filename)
+{
     $mime_types = array(
         'sublime' => 'application/xml',
         'srt' => 'text/plain',
@@ -188,7 +191,7 @@ function mime_content_type_custom($filename) {
         //'mov' => 'video/quicktime',
         //'avi' => 'video/x-msvideo',
         //'wmv' => 'video/x-ms-wmv',
-        
+
         // images
         'png' => 'image/png',
         'jpe' => 'image/jpeg',
@@ -236,27 +239,42 @@ function mime_content_type_custom($filename) {
     $ext = strtolower(array_pop($exp));
     if (array_key_exists($ext, $mime_types)) {
         return $mime_types[$ext];
-    }
-    elseif (function_exists('finfo_open') && file_exists($filename)) {
+    } elseif (function_exists('finfo_open') && file_exists($filename)) {
         $finfo = finfo_open(FILEINFO_MIME);
         $mimetype = finfo_file($finfo, $filename);
         finfo_close($finfo);
         return $mimetype;
-    }
-    else {
+    } else {
         return 'application/octet-stream';
     }
 }
 
-if(endsWith($path, "/")){
+if (endsWith($path, "/")) {
     $output = filelist_dropbox_to_emile_format($output);
     header('Content-Type: application/json');
-}
-else if($_SERVER['REQUEST_METHOD'] == "POST"){
+} elseif ($_SERVER['REQUEST_METHOD'] == "POST") {
     $output = "This PHP-proxy thinks the file has been written.";
     header('Content-Type: text/plain');
-}else
-header('Content-Type: '.mime_content_type_custom($path));
-
+} else {
+    if (isset($_GET["convertTo"]) && $_GET["convertTo"] == "html") {
+        header('Content-Type: text/html');
+        $name = basename($path);
+        $encoded = $output;
+        $encoded = htmlentities($encoded);
+        $encoded = preg_replace('"\b(https?://\S+)"', '<a href="$1">$1</a>', $encoded);
+        // Using <pre> for keeping newlines causes wrapping to be massed up.
+        $encoded = preg_replace("\"\n\"", '<br/>', $encoded);
+        $output = "<!DOCTYPE html>
+        <html>
+        <head>
+            <title>$name</title>
+        </head>
+        <body style=\"font-family: monospace;\">
+        $encoded
+        </body>
+        </html>";
+    } else {
+        header('Content-Type: '.mime_content_type_custom($path));
+    }
+}
 echo $output;
-?>
