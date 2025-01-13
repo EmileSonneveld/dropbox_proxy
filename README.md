@@ -1,5 +1,5 @@
 # dropbox_proxy
-Make files accessible with simple HTTP(s) calls. Making relative paths in HTML files work too. Just like the 'Public' folder used to work.
+Makes files accessible with simple HTTP(s) calls. Making relative paths in HTML files work too. Just like the 'Public' folder used to work.
 
 Place this folder on a Apache/PHP server and fill in the gaps in the code. Then your server should be proxying the files from your dropbox using the dropbox API.
 
@@ -13,4 +13,4 @@ Formatted with PSR-2
 Fixed some issues with SonarCloud
 Has been slightly pentested.
 
-If you spot bugs, please let me know here: contact@emilesonneveld.be
+If you spot bugs, please let me know!
